@@ -1,6 +1,6 @@
-# Qurio - Local AI Personal Finance Assistant
+# Qurio - Local AI Personal Assistant
 
-Qurio is a local, terminal-based AI personal finance assistant built using LangGraph, LangChain, and a local vLLM server running Qwen-2.5-1.5B-Instruct. It acts as an autonomous database agent that categorizes queries and safely executes SQL queries against a local SQLite database.
+Qurio is a local, terminal-based AI personal assistant built using LangGraph, LangChain, and a local vLLM server running Qwen-2.5-1.5B-Instruct. It acts as an autonomous database agent that categorizes queries and safely executes SQL queries against a local SQLite database.
 
 ---
 
