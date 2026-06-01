@@ -1,0 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Extra markdown documents (kept locally only)
+walkthrough.md
+handoff_*.md
+CODEBASE_MAP.md
+
+# Conversation state logs
+logs/
