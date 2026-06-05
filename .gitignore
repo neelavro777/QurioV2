@@ -9,10 +9,27 @@ wheels/
 # Virtual environments
 .venv
 
-# Extra markdown documents (kept locally only)
-walkthrough.md
-handoff_*.md
-CODEBASE_MAP.md
-
 # Conversation state logs
 logs/
+
+# Database files
+backend/data/
+/chroma_db/
+/chroma_db_v3/
+/storage/
+
+# Knowledge base cache and db
+knowledge_database/
+backend/app/knowledge_base/chunks.json
+
+# Markdown files
+/*.md
+!/README.md
+!/readme.md
+
+# Ignore learnings folder completely
+/learnings/
+
+# Ignore custom agent prompts and routes (templates tracked as *.example)
+backend/app/agent/prompts.yaml
+backend/app/agent/routes.yaml

@@ -1,0 +1,34 @@
+# routes.yaml.example — Semantic Router Route Definitions (Template)
+#
+# Rename this file to routes.yaml and populate it with your own utterances.
+#
+# SCORING: Top-3 mean aggregation per route. Threshold: 0.50 (confident).
+# Below threshold → default to 'chat' (safe fallback).
+
+routes:
+
+  chat:
+    description: "Greetings, social conversation, general knowledge, acknowledgements, and statements"
+    utterances:
+      - "hello"
+      - "hi"
+      - "who are you?"
+      - "thanks"
+      - "what is compound interest?"
+      - "I spent a lot this month"  # Statement, not a query
+
+  query_user_information:
+    description: "Queries requesting transaction histories, categories, balances, or specific transaction details"
+    utterances:
+      - "show me my transactions"
+      - "how much did I spend this month?"
+      - "what was my last transaction?"
+      - "show me my most expensive purchase"
+
+  search_knowledge_base:
+    description: "Queries asking about banking guidelines, fees, terms, card activation, policies, or FAQs"
+    utterances:
+      - "how do I activate my debit card?"
+      - "what are the fees for RTGS transfer?"
+      - "what is the ATM withdrawal limit?"
+      - "how do I block my card?"

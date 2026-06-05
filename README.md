@@ -1,6 +1,6 @@
-# Qurio - Local AI Personal Assistant
+# Qurio - Local AI Personal Finance Assistant
 
-Qurio is a local, terminal-based AI personal assistant built using LangGraph, LangChain, and a local vLLM server running Qwen-2.5-1.5B-Instruct. It acts as an autonomous database agent that categorizes queries and safely executes SQL queries against a local SQLite database.
+Qurio is a local, terminal-based AI personal finance assistant built using LangGraph, LangChain, and a local vLLM server running Qwen-3.5-2B-AWQ-4bit. It acts as an autonomous database agent that categorizes queries via ultra-fast semantic routing, safely executes SQL queries against a local SQLite database, and retrieves FAQ documentation via a local ChromaDB RAG pipeline.
 
 ---
 
@@ -14,7 +14,7 @@ Qurio processes conversations via a stateful, directed acyclic graph orchestrate
   START
     |
     v
-classify_intent (Structured Intent Classifier)
+classify_intent (Aurelio Semantic Router)
     |
     +---> "chat"                  ==> prompt_llm_chat ==> END
     +---> "search_knowledge_base" ==> prompt_llm_search_knowledge_base ==> END
@@ -31,42 +31,38 @@ classify_intent (Structured Intent Classifier)
 
 ### B. Core Components
 
-*   **classify_intent Node**: Reads the last message and passes it through the LLM with structured output (`IntentClassifier` Pydantic schema). It uses Chain-of-Thought (reasoning first) to classify the user query into chat, query_user_information, or search_knowledge_base.
-*   **agent_node (ReAct Agent)**: The execution node for database queries. Binds the LLM to database tools and manages three-state tool choice requirements based on execution history.
-*   **tool_node**: Built-in LangGraph execution layer that triggers SQLite queries against the database.
-*   **prompt_llm_chat Node**: Handles conversational queries, greetings, and generic factual questions.
-*   **prompt_llm_search_knowledge_base Node**: A placeholder node for operational documentation and policy FAQs.
+*   **classify_intent Node**: Uses `semantic-router` to embed the user query (via BAAI/bge-base-en-v1.5) and calculate cosine similarity against a YAML library of ~190 utterances. This deterministic, embedding-based routing replaces unreliable LLM-based intent classification.
+*   **agent_node (ReAct Agent)**: The execution node for database queries. Binds the Qwen 3.5 LLM to SQLite database tools, enforcing history trimming to prevent stale-history hallucinations.
+*   **prompt_llm_search_knowledge_base Node**: A full RAG pipeline node that queries a local offline ChromaDB vector database (using the bge-base embedding model) to answer user FAQs and policy questions.
+*   **prompt_llm_chat Node**: Handles conversational queries and greetings.
 
 ---
 
 ## 2. Security, Guardrails & Protections
 
-To guarantee safe and predictable local execution on a small 1.5B parameter model, the codebase incorporates a multi-layer defense strategy.
+To guarantee safe and predictable local execution on a small 2B parameter model, the codebase incorporates a multi-layer defense strategy.
 
 ### A. ReAct Loop Guard (Infinite Loop Prevention)
-Small local models can get stuck in repeating cycles of generating identical tool queries. The `agent_node` implemented in `nodes.py` actively monitors a rolling history window of the last 6 messages. 
-If the exact same tool name and arguments are generated twice within this window, the guard triggers:
-1. It injects a strict instruction forcing the model to stop calling tools.
-2. It strips tool-calling capabilities (`tool_choice=None`) on the subsequent invocation, forcing the model to answer using only the data it has already retrieved.
+The `agent_node` actively monitors a rolling history window of the last 6 messages. If the exact same tool name and arguments are generated twice, the guard injects a strict instruction forcing the model to stop calling tools.
 
 ### B. Two-Layer SQL Validation
-To prevent destructive database actions or parsing errors:
-*   **Schema & Docstring Context (Layer 1)**: The exact table schema, column restrictions, and few-shot query examples are embedded directly in the `query_database` tool docstring. The LLM reads this at call-time.
-*   **Static AST Validator (Layer 2)**: The query string is passed through `validators.validate_query` before hitting the database. It enforces that only SELECT statements are executed, blocks destructive operations (DROP, INSERT, DELETE, UPDATE), and ensures proper filtering constraints.
+*   **Schema & Docstring Context**: The exact table schema, column restrictions, and few-shot query examples are embedded directly in the `query_database` tool docstring.
+*   **Static AST Validator**: The query string is passed through `validators.validate_query` before hitting the database. It enforces that only SELECT statements are executed, blocks destructive operations (DROP, INSERT, DELETE, UPDATE), and ensures proper filtering constraints.
+
+### C. History Trimming
+To prevent "stale-context hallucination", only a sliding window of the last 12 messages is passed to the generation model. This guarantees the model uses fresh database queries rather than hallucinating aggregations from past turns.
 
 ---
 
 ## 3. Directory Map
 
-*   `main.py`: Application entry point, REPL execution loop, database setup, and conversation history saving.
-*   `graph.py`: LangGraph state machine assembly, intent routing edges, ReAct loops, and compilation with InMemorySaver checkpoints.
-*   `nodes.py`: Node functions, Pydantic classification schema, ReAct tool bindings, and loop guard logic.
-*   `logger.py`: Interceptor decorator (`@log_node`) providing color-coded, real-time terminal tracing of state transitions, plus JSON log writers.
-*   `prompts.py` & `prompts.yaml`: Centralized system message registry that decouples prompts from code execution.
-*   `tools/query_database.py`: Executable SQL SELECT tool with SQLite connectivity.
-*   `tools/validators.py`: Static semantic validation logic for generated SQL strings.
-*   `database/setup.py`: Database bootstrap and idempotent transactional demo seeding.
-*   `logs/`: Folder containing local conversation logs stored as raw and simplified JSON dictionaries.
+*   `backend/scripts/main.py`: Application entry point and interactive REPL shell.
+*   `backend/app/agent/graph.py`: LangGraph state machine assembly.
+*   `backend/app/agent/nodes.py`: Node execution logic.
+*   `backend/app/agent/semantic_router.py`: Embeddings-based intent classification layer.
+*   `backend/app/knowledge_base/`: ChromaDB RAG ingestion pipeline, hash-based synchronization (`sync.py`), and retrieval logic.
+*   `backend/app/utils/logger.py`: Unified `@log_node` decorator providing state tracing to NDJSON and JSON logs.
+*   `backend/app/tools/query_database.py`: Executable SQL SELECT tool with SQLite connectivity.
 
 ---
 
@@ -75,40 +71,53 @@ To prevent destructive database actions or parsing errors:
 This project uses the modern Python package manager `uv` to manage environments and dependencies.
 
 ### A. Prerequisites
-Ensure you have Node (for npx), Python, and Git installed.
+Ensure you have Node, Python `3.11+`, and Git installed.
 
 ### B. Initialize Environment
-From the project root directory, synchronize the virtual environment and install all pinned dependencies:
+From the project root directory, synchronize the virtual environment and install dependencies:
 
 ```bash
 uv sync
 ```
 
-This will automatically create a local `.venv` environment and install LangChain, LangGraph, Pydantic, and SQLite adapters.
-
 ---
 
 ## 5. Startup & Running the Application
 
-### A. Local vLLM Server Startup
-For the database agent to execute tools, the vLLM server must be started with auto-tool choice and Hermes function-calling parsers active. Use the following Docker run command to start your Qwen server:
+Qurio's offline architecture requires **two** separate vLLM instances running simultaneously.
+
+### A. Start the Embeddings Server (Port 8001)
+Used by the Semantic Router and the RAG pipeline.
 
 ```bash
-sudo docker run --name qwen-server --runtime nvidia --gpus all \
+sudo docker run --name bge-embed --runtime nvidia --gpus all \
   -v ~/models/huggingface:/models \
-  -p 8000:8000 --ipc=host vllm/vllm-openai:latest \
-  --model /models/Qwen2.5-1.5B-Instruct-AWQ \
-  --quantization awq --gpu-memory-utilization 0.4 \
-  --max-model-len 4096 --enforce-eager \
-  --enable-auto-tool-choice --tool-call-parser hermes
+  -p 8001:8000 --ipc=host vllm/vllm-openai:latest \
+  /models/bge-base-en-v1.5 \
+  --served-model-name BAAI/bge-base-en-v1.5 \
+  --gpu-memory-utilization 0.20
 ```
 
-### B. Running the Interactive Client
-To start the interactive Qurio REPL shell, run:
+### B. Start the Generation Server (Port 8000)
+Used by the ReAct agent and chat nodes.
 
 ```bash
-uv run python main.py
+sudo docker run --name qwen35-server --runtime nvidia --gpus all \
+  -v ~/models/huggingface:/models \
+  -p 8000:8000 --ipc=host \
+  vllm/vllm-openai:latest \
+  --model /models/Qwen3.5-2B-AWQ-4bit \
+  --gpu-memory-utilization 0.50 \
+  --max-model-len 4096 \
+  --enforce-eager \
+  --enable-auto-tool-choice \
+  --tool-call-parser qwen3_coder \
+  --language-model-only
 ```
 
-This initializes the local `qurio.db` file, seeds the initial mock transactions, and launches a stateful, interactive chat session in the terminal.
+### C. Run the Interactive Client
+Open a third terminal and start the Qurio REPL shell:
 
+```bash
+uv run --project backend python backend/scripts/main.py
+```

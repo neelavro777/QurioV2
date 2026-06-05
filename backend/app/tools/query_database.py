@@ -120,8 +120,8 @@ def query_database(sql: str) -> dict:
     """
     logger.info(f"[Tool] query_database called with SQL: {sql!r}")
 
-    from tools.validators import validate_query
-    from database import get_connection
+    from app.tools.validators import validate_query
+    from app.database import get_connection
 
     # Layer 2: Validate before execution
     # Pass empty string for original_question — the validator still catches

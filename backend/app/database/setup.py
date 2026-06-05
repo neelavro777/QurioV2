@@ -23,8 +23,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Absolute path to the database file — always lives next to this module
-DATABASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "qurio.db")
+from pathlib import Path
+
+# Absolute path to the database file — lives in backend/data/
+DATABASE_PATH = str(Path(__file__).parent.parent.parent / "data" / "qurio.db")
 
 # ---------------------------------------------------------------------------
 # Seed data — 15 rows deliberately designed to test specific SQL edge cases:

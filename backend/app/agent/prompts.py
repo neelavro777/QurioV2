@@ -25,8 +25,10 @@ class PromptRegistry:
         if not raw_prompt:
             raise KeyError(f"Prompt for agent '{agent_name}' was not found in prompts.yaml.")
             
-        # Strip trailing newlines and format variables if they exist
-        formatted_prompt = raw_prompt.strip().format(**kwargs)
+        # Strip trailing newlines and format variables only if arguments are provided
+        formatted_prompt = raw_prompt.strip()
+        if kwargs:
+            formatted_prompt = formatted_prompt.format(**kwargs)
         return SystemMessage(content=formatted_prompt)
 
 # Instantiate a single shared instance of the registry
