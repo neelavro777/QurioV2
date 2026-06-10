@@ -33,3 +33,7 @@ backend/app/knowledge_base/chunks.json
 # Ignore custom agent prompts and routes (templates tracked as *.example)
 backend/app/agent/prompts.yaml
 backend/app/agent/routes.yaml
+
+# Test datasets and evaluation reports
+backend/tests/datasets/
+backend/tests/reports/

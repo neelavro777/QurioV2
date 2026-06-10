@@ -189,10 +189,15 @@ class SemanticRouter:
                 # so we will use a dummy confidence of 1.0 or similar to indicate success.
                 confidence = 1.0 
             else:
-                # No route crossed the threshold.
-                intent = "chat"
-                method = "default"
-                confidence = 0.0
+                # No route crossed the threshold. Check for follow-up inheritance.
+                if prev_intent and prev_intent != "chat" and len(query.split()) <= 8:
+                    intent = prev_intent
+                    method = "inherited_from_context"
+                    confidence = 0.5
+                else:
+                    intent = "chat"
+                    method = "default"
+                    confidence = 0.0
 
             result = RouteResult(
                 intent=intent,

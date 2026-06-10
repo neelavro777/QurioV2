@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qurio — Agent Observability Platform</title>
+  <meta name="description" content="Real-time traceability and observability dashboard for the Qurio LangGraph AI agent pipeline">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Vis.js Network -->
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="sidebar.css">
+  <link rel="stylesheet" href="chat.css?v=2">
+  <link rel="stylesheet" href="panels.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ═══════════════════════════ TOPBAR ═══════════════════════════ -->
+    <header id="topbar">
+      <div class="topbar-left">
+        <div class="logo-mark">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#FFD700" stroke="#FFD700" stroke-width="1" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="logo-text">Qurio</span>
+        <span class="logo-badge">OBSERVER</span>
+        <div class="topbar-sep"></div>
+        <nav class="tab-nav">
+          <button class="tab-btn active" data-tab="chat" id="tab-chat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Chat Lens
+          </button>
+          <button class="tab-btn" data-tab="graph" id="tab-graph">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+            Graph Trace
+          </button>
+          <button class="tab-btn" data-tab="sessions" id="tab-sessions">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Sessions
+          </button>
+          <button class="tab-btn" data-tab="retrieval" id="tab-retrieval">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Retrieval
+          </button>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="api-status" id="api-status">
+          <div class="status-dot" id="status-dot"></div>
+          <span id="status-text">Connecting...</span>
+        </div>
+        <div class="session-badge" id="session-badge">NO SESSION</div>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════ MAIN LAYOUT ═══════════════════════════ -->
+    <div id="main-layout">
+
+      <!-- ─────────────── LEFT SIDEBAR ─────────────── -->
+      <aside id="left-sidebar">
+
+        <!-- SQLite Database Section -->
+        <div class="sidebar-section" id="section-db">
+          <div class="section-header" onclick="toggleSection('section-db')">
+            <div class="section-header-left">
+              <div class="section-icon db-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+              </div>
+              <span class="section-title">SQLite Database</span>
+            </div>
+            <div class="section-header-right">
+              <span class="section-count" id="db-count">—</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="section-body" id="db-body">
+            <div class="section-loading" id="db-loading">
+              <div class="spinner-sm"></div>
+              <span>Loading tables...</span>
+            </div>
+            <div id="db-tables"></div>
+          </div>
+        </div>
+
+        <!-- Knowledge Base Section -->
+        <div class="sidebar-section" id="section-kb">
+          <div class="section-header" onclick="toggleSection('section-kb')">
+            <div class="section-header-left">
+              <div class="section-icon kb-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+              </div>
+              <span class="section-title">Knowledge Base</span>
+            </div>
+            <div class="section-header-right">
+              <span class="section-count" id="kb-count">—</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="section-body" id="kb-body">
+            <div class="section-loading" id="kb-loading">
+              <div class="spinner-sm"></div>
+              <span>Loading KB...</span>
+            </div>
+            <div id="kb-tree"></div>
+          </div>
+        </div>
+
+        <!-- Agent Pipeline Section -->
+        <div class="sidebar-section" id="section-pipeline">
+          <div class="section-header" onclick="toggleSection('section-pipeline')">
+            <div class="section-header-left">
+              <div class="section-icon pipe-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <span class="section-title">Pipeline Nodes</span>
+            </div>
+            <div class="section-header-right">
+              <span class="section-count">5</span>
+              <svg class="chevron rotated" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div class="section-body open" id="pipeline-body">
+            <div class="pipeline-nodes" id="pipeline-nodes">
+              <div class="pipeline-node" data-node="classify_intent">
+                <div class="pnode-dot" style="background:#3B82F6"></div>
+                <div class="pnode-info">
+                  <div class="pnode-name">classify_intent</div>
+                  <div class="pnode-sub">Semantic Router · bge-base-en</div>
+                </div>
+                <div class="pnode-badge blue">Router</div>
+              </div>
+              <div class="pnode-connector"></div>
+              <div class="pipeline-node" data-node="agent_execute">
+                <div class="pnode-dot" style="background:#8B5CF6"></div>
+                <div class="pnode-info">
+                  <div class="pnode-name">agent_execute</div>
+                  <div class="pnode-sub">ReAct · Qwen3.5-2B-AWQ</div>
+                </div>
+                <div class="pnode-badge purple">ReAct</div>
+              </div>
+              <div class="pnode-connector"></div>
+              <div class="pipeline-node" data-node="tool_node">
+                <div class="pnode-dot" style="background:#F59E0B"></div>
+                <div class="pnode-info">
+                  <div class="pnode-name">tool_node</div>
+                  <div class="pnode-sub">SQLite · query_database</div>
+                </div>
+                <div class="pnode-badge amber">Tool</div>
+              </div>
+              <div class="pnode-connector"></div>
+              <div class="pipeline-node" data-node="prompt_llm_search_knowledge_base">
+                <div class="pnode-dot" style="background:#10B981"></div>
+                <div class="pnode-info">
+                  <div class="pnode-name">prompt_llm_search_kb</div>
+                  <div class="pnode-sub">RAG · ChromaDB + LLM</div>
+                </div>
+                <div class="pnode-badge green">RAG</div>
+              </div>
+              <div class="pnode-connector"></div>
+              <div class="pipeline-node" data-node="prompt_llm_chat">
+                <div class="pnode-dot" style="background:#6366F1"></div>
+                <div class="pnode-info">
+                  <div class="pnode-name">prompt_llm_chat</div>
+                  <div class="pnode-sub">Chat · Direct LLM call</div>
+                </div>
+                <div class="pnode-badge indigo">Chat</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- ─────────────── CENTER CONTENT ─────────────── -->
+      <main id="center-content">
+
+        <!-- ════════ TAB: CHAT LENS ════════ -->
+        <div class="tab-view active" id="view-chat">
+          <div class="chat-scroll" id="chat-scroll">
+            <div class="chat-inner" id="chat-inner">
+              <!-- Empty state -->
+              <div class="chat-empty" id="chat-empty">
+                <div class="empty-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                </div>
+                <h2 class="empty-title">Qurio Observer Ready</h2>
+                <p class="empty-sub">Send a query to trace the full agentic pipeline. Every node, SQL query, and retrieval chunk will be captured here in real time.</p>
+                <div class="empty-chips">
+                  <button class="chip" onclick="sendExample('Show my 5 most recent transactions')">Show recent transactions</button>
+                  <button class="chip" onclick="sendExample('What is the ATM withdrawal limit?')">ATM withdrawal limit</button>
+                  <button class="chip" onclick="sendExample('How do I activate my debit card?')">Activate debit card</button>
+                  <button class="chip" onclick="sendExample('How much have I spent on food this month?')">Food spending</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input bar -->
+          <div class="chat-input-bar">
+            <div class="chat-input-wrapper" id="chat-input-wrapper">
+              <div class="input-left">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input
+                  type="text"
+                  id="chat-input"
+                  placeholder="Send a query to Qurio..."
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+              </div>
+              <button id="chat-send" onclick="handleChatSend()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════════ TAB: GRAPH TRACE ════════ -->
+        <div class="tab-view" id="view-graph">
+          <div id="graph-canvas"></div>
+
+          <!-- Graph toolbar -->
+          <div class="graph-toolbar">
+            <button class="graph-tool-btn" onclick="graphFit()" title="Fit to screen">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M3 16v3a2 2 0 002 2h3M16 21h3a2 2 0 002-2v-3"/></svg>
+            </button>
+            <button class="graph-tool-btn" onclick="graphZoomIn()" title="Zoom in">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <button class="graph-tool-btn" onclick="graphZoomOut()" title="Zoom out">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <div class="graph-tool-sep"></div>
+            <div class="graph-legend">
+              <div class="legend-item"><span class="legend-dot" style="background:#3B82F6"></span>Router</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#8B5CF6"></span>ReAct</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#F59E0B"></span>Tool</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#10B981"></span>RAG</div>
+              <div class="legend-item"><span class="legend-dot" style="background:#6366F1"></span>Chat</div>
+            </div>
+          </div>
+
+          <!-- Graph chat overlay -->
+          <div class="graph-input-overlay">
+            <div class="graph-input-inner">
+              <input type="text" id="graph-input" placeholder="Query from graph view..." autocomplete="off">
+              <button onclick="handleGraphSend()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+
+
+        </div>
+
+        <!-- ════════ TAB: SESSIONS ════════ -->
+        <div class="tab-view" id="view-sessions">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Session Logs</h2>
+              <p class="panel-sub">Historical conversation traces with full node execution data</p>
+            </div>
+            <button class="panel-refresh-btn" onclick="loadSessions()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div class="sessions-container" id="sessions-container">
+            <div class="loading-state" id="sessions-loading">
+              <div class="spinner"></div>
+              <p>Loading sessions...</p>
+            </div>
+            <div id="sessions-list"></div>
+          </div>
+
+          <!-- Session detail panel -->
+          <div class="session-detail-panel" id="session-detail">
+            <div class="detail-header">
+              <div>
+                <h3 id="detail-session-title">Session Details</h3>
+                <p id="detail-session-sub" class="detail-sub"></p>
+              </div>
+              <button class="detail-close" onclick="closeSessionDetail()">✕</button>
+            </div>
+            <div class="detail-body" id="detail-body"></div>
+          </div>
+        </div>
+
+        <!-- ════════ TAB: RETRIEVAL ════════ -->
+        <div class="tab-view" id="view-retrieval">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Retrieval Traces</h2>
+              <p class="panel-sub">Vector search similarity scores and parent chunk expansion details</p>
+            </div>
+            <button class="panel-refresh-btn" onclick="loadRetrievalTraces()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div class="retrieval-container" id="retrieval-container">
+            <div class="loading-state" id="retrieval-loading">
+              <div class="spinner"></div>
+              <p>Loading retrieval traces...</p>
+            </div>
+            <div id="retrieval-list"></div>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- ─────────────── RIGHT PANEL ─────────────── -->
+      <div id="right-panel" class="right-panel-closed">
+        <div class="rp-header">
+          <div class="rp-title-row">
+            <span class="rp-node-badge" id="rp-node-badge">node</span>
+            <span class="rp-title" id="rp-title">Node Inspector</span>
+          </div>
+          <button class="rp-close" onclick="closeRightPanel()">✕</button>
+        </div>
+        <div class="rp-body" id="rp-body">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+    </div><!-- /#main-layout -->
+
+  </div><!-- /#app -->
+
+  <!-- DB Table Modal -->
+  <div class="modal-overlay" id="db-modal-overlay" onclick="closeDbModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 id="modal-table-name">Table</h3>
+          <p id="modal-table-info" class="modal-sub"></p>
+        </div>
+        <button class="modal-close" onclick="closeDbModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading data...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=3"></script>
+  <script src="graph.js"></script>
+</body>
+</html>

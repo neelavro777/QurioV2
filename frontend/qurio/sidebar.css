@@ -1,0 +1,169 @@
+/* ── SIDEBAR SECTIONS ── */
+.sidebar-section {
+  border-bottom: 1px solid var(--border);
+}
+
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.section-header:hover { background: var(--hover); }
+
+.section-header-left { display: flex; align-items: center; gap: 8px; }
+.section-header-right { display: flex; align-items: center; gap: 6px; }
+
+.section-icon {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.db-icon { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid rgba(59,130,246,0.2); }
+.kb-icon { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.pipe-icon { background: rgba(139,92,246,0.15); color: var(--purple); border: 1px solid rgba(139,92,246,0.2); }
+
+.section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--muted-bright); text-transform: uppercase; }
+
+.section-count {
+  font-size: 10px; font-family: var(--font-mono);
+  color: var(--muted); background: var(--panel);
+  padding: 1px 6px; border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.chevron { color: var(--muted); transition: transform 0.2s; }
+.chevron.rotated { transform: rotate(180deg); }
+
+.section-body { display: none; }
+.section-body.open { display: block; }
+
+.section-loading {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px; color: var(--muted); font-size: 12px;
+}
+
+/* ── SPINNER ── */
+.spinner {
+  width: 24px; height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--yellow);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+.spinner-sm {
+  width: 12px; height: 12px;
+  border: 1.5px solid var(--border);
+  border-top-color: var(--muted);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── DB TABLE ITEMS ── */
+.db-table-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-bottom: 1px solid var(--border);
+}
+.db-table-item:hover { background: var(--hover); }
+.db-table-item:last-child { border-bottom: none; }
+
+.db-table-left { display: flex; align-items: center; gap: 8px; }
+.db-table-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+.db-table-name { font-family: var(--font-mono); font-size: 12px; color: var(--text); }
+.db-table-count {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--muted); background: var(--panel);
+  padding: 1px 6px; border-radius: 8px; border: 1px solid var(--border);
+}
+
+.db-schema-cols {
+  padding: 0 12px 8px;
+  display: flex; flex-wrap: wrap; gap: 4px;
+}
+.db-col-tag {
+  font-size: 10px; font-family: var(--font-mono);
+  color: var(--muted); background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 1px 5px; border-radius: 3px;
+}
+.db-col-tag.pk { color: var(--amber); border-color: rgba(245,158,11,0.3); }
+
+/* ── KB TREE ── */
+.kb-category {
+  border-bottom: 1px solid var(--border);
+}
+.kb-category-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.kb-category-header:hover { background: var(--hover); }
+
+.kb-category-name {
+  font-size: 11px; font-weight: 600; color: var(--muted-bright);
+  text-transform: capitalize;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kb-section-count { font-size: 10px; color: var(--muted); font-family: var(--font-mono); }
+
+.kb-sections { display: none; }
+.kb-sections.open { display: block; }
+
+.kb-section-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 12px 6px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.kb-section-item:hover { background: var(--hover); }
+.kb-section-item:last-child { border-bottom: none; }
+
+.kb-section-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; margin-top: 5px; }
+.kb-section-info { flex: 1; min-width: 0; }
+.kb-section-heading { font-size: 11px; color: var(--muted-bright); line-height: 1.4; }
+.kb-section-id { font-size: 10px; font-family: var(--font-mono); color: var(--muted); margin-top: 1px; }
+.kb-q-count { font-size: 10px; color: var(--muted); background: var(--panel); padding: 1px 5px; border-radius: 8px; border: 1px solid var(--border); flex-shrink: 0; }
+
+/* ── PIPELINE NODES ── */
+.pipeline-nodes { padding: 8px; display: flex; flex-direction: column; }
+
+.pipeline-node {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pipeline-node:hover { border-color: var(--border-bright); background: var(--hover); }
+.pipeline-node.active-node { border-color: var(--yellow); background: var(--yellow-dim); }
+
+.pnode-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.pnode-info { flex: 1; min-width: 0; }
+.pnode-name { font-family: var(--font-mono); font-size: 11px; color: var(--text); font-weight: 500; }
+.pnode-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+.pnode-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.05em;
+  padding: 2px 6px; border-radius: 3px; text-transform: uppercase; flex-shrink: 0;
+}
+.pnode-badge.blue { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid rgba(59,130,246,0.2); }
+.pnode-badge.purple { background: rgba(139,92,246,0.15); color: var(--purple); border: 1px solid rgba(139,92,246,0.2); }
+.pnode-badge.amber { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+.pnode-badge.green { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.pnode-badge.indigo { background: rgba(99,102,241,0.15); color: var(--indigo); border: 1px solid rgba(99,102,241,0.2); }
+
+.pnode-connector {
+  width: 1px; height: 12px;
+  background: linear-gradient(to bottom, var(--border-bright), transparent);
+  margin-left: 19px;
+}

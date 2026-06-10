@@ -29,10 +29,12 @@ prompt_llm_search_knowledge_base:
       e.g. "According to the ATM Limits and Fees section..."
 
     RULE 3 — NO HALLUCINATION / DEFLECT GRACEFULLY:
-      If the retrieved context does not contain enough information to answer:
-      Respond with EXACTLY this message (no additions or modifications):
+      If the retrieved context provides ZERO relevant information for the user's question,
+      ONLY THEN respond with this exact message:
       "I don't have information on that topic in my knowledge base. For assistance,
-      please contact support at [Support Phone Number], or reach out through the in-app chat."
+      please contact Prime NOW support at 09644-213030 or 09610-961000, or reach
+      out through the in-app chat."
+      DO NOT append this message if you have successfully answered any part of the question.
 
 agent_node:
   system: |

@@ -86,9 +86,10 @@ uv sync
 
 Qurio's offline architecture requires **two** separate vLLM instances running simultaneously.
 
-### A. Start the Embeddings Server (Port 8001)
-Used by the Semantic Router and the RAG pipeline.
+### A. Initial Docker Setup (First Time Only)
+Create the two required Docker containers on your system:
 
+**1. Embeddings Server (Port 8001)**
 ```bash
 sudo docker run --name bge-embed --runtime nvidia --gpus all \
   -v ~/models/huggingface:/models \
@@ -98,9 +99,7 @@ sudo docker run --name bge-embed --runtime nvidia --gpus all \
   --gpu-memory-utilization 0.20
 ```
 
-### B. Start the Generation Server (Port 8000)
-Used by the ReAct agent and chat nodes.
-
+**2. Generation Server (Port 8000)**
 ```bash
 sudo docker run --name qwen35-server --runtime nvidia --gpus all \
   -v ~/models/huggingface:/models \
@@ -115,9 +114,32 @@ sudo docker run --name qwen35-server --runtime nvidia --gpus all \
   --language-model-only
 ```
 
-### C. Run the Interactive Client
-Open a third terminal and start the Qurio REPL shell:
+---
 
-```bash
-uv run --project backend python backend/scripts/main.py
-```
+### B. Run via Automated Scripts (Recommended)
+Once the Docker containers are created, you can launch the application with a single command. The scripts automatically start the containers, perform health checks, run the app, and gracefully stop the containers upon exit.
+
+*   **For Terminal REPL Interface:**
+    ```bash
+    bash backend/scripts/start_terminal.sh
+    ```
+
+*   **For Web Server (FastAPI with Observability UI):**
+    ```bash
+    bash backend/scripts/start_web.sh
+    ```
+    The web app and API will be available at `http://localhost:8080`.
+
+---
+
+### C. Run Manually (Alternative)
+If you prefer to start services individually:
+
+1.  Start the containers:
+    ```bash
+    sudo docker start qwen35-server bge-embed
+    ```
+2.  Run the terminal interface:
+    ```bash
+    uv run --project backend python backend/scripts/main.py
+    ```
